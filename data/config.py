@@ -104,17 +104,16 @@ class Config(object):
 
 
 # ----------------------- DATASETS ----------------------- #
-
 dataset_base = Config({
     'name': 'Base Dataset',
 
     # Training images and annotations
     'train_images': './data/coco/images/',
-    'train_info':   'path_to_annotation_file',
+    'train_info': 'path_to_annotation_file',
 
     # Validation images and annotations.
     'valid_images': './data/coco/images/',
-    'valid_info':   'path_to_annotation_file',
+    'valid_info': 'path_to_annotation_file',
 
     # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
     'has_gt': True,
@@ -126,6 +125,16 @@ dataset_base = Config({
     # provide a map from category_id -> index in class_names + 1 (the +1 is there because it's 1-indexed).
     # If not specified, this just assumes category ids start at 1 and increase sequentially.
     'label_map': None
+})
+
+snack_dataset = dataset_base.copy({
+    'name': 'snack',
+    'train_info': './data/train/trainval.json',
+    'train_images': './data/train/images/',
+    'valid_info': './data/train/trainval.json',
+    'valid_images': './data/train/images/',
+    'class_names': ('cara','juicy','mychu'),
+    'label_map' : { 0:1, 1:2, 2:3 }
 })
 
 coco2014_dataset = dataset_base.copy({
@@ -254,7 +263,7 @@ resnet101_dcn_inter3_backbone = resnet101_backbone.copy({
 
 resnet50_backbone = resnet101_backbone.copy({
     'name': 'ResNet50',
-    'path': 'resnet50-19c8e357.pth',
+    'path': 'resnet101_reducedfc.pth',
     'type': ResNetBackbone,
     'args': ([3, 4, 6, 3],),
     'transform': resnet_transform,
@@ -761,6 +770,23 @@ yolact_resnet50_pascal_config = yolact_resnet50_config.copy({
     'max_iter': 120000,
     'lr_steps': (60000, 100000),
     
+    'backbone': yolact_resnet50_config.backbone.copy({
+        'pred_scales': [[32], [64], [128], [256], [512]],
+        'use_square_anchors': False,
+    })
+})
+
+yolact_resnet50_snack_config = yolact_resnet50_config.copy({
+    'name': 'yolact_resnet50_snack_basket',  # Will default to yolact_resnet50_pascal
+
+    # Dataset stuff
+    'dataset': snack_dataset,
+    'num_classes': len(snack_dataset.class_names) + 1,
+
+    'max_size': 550,
+    'max_iter': 120000,
+    'lr_steps': (60000, 100000),
+
     'backbone': yolact_resnet50_config.backbone.copy({
         'pred_scales': [[32], [64], [128], [256], [512]],
         'use_square_anchors': False,
